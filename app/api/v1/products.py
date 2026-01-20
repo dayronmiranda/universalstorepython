@@ -509,3 +509,127 @@ async def get_products_stock(
         "success": True,
         "data": stock_data
     }
+
+
+# Stats & Analytics endpoints
+
+@router.get("/products/stats")
+async def get_product_stats(
+    current_user: dict = Depends(require_product_manager),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get product statistics (Admin only).
+    """
+    # Aggregate product statistics
+    pipeline = [
+        {
+            "$facet": {
+                "total": [{"$count": "count"}],
+                "active": [{"$match": {"active": True}}, {"$count": "count"}],
+                "out_of_stock": [{"$match": {"stock": 0}}, {"$count": "count"}],
+                "low_stock": [{"$match": {"stock": {"$lte": 10, "$gt": 0}}}, {"$count": "count"}],
+                "by_category": [
+                    {"$match": {"active": True, "category": {"$exists": True}}},
+                    {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+                    {"$sort": {"count": -1}}
+                ],
+                "total_value": [
+                    {"$match": {"active": True}},
+                    {"$group": {"_id": None, "value": {"$sum": {"$multiply": ["$price", "$stock"]}}}}
+                ]
+            }
+        }
+    ]
+
+    result = await db.products.aggregate(pipeline).to_list(length=1)
+
+    if not result:
+        return {
+            "success": True,
+            "data": {
+                "total_products": 0,
+                "active_products": 0,
+                "out_of_stock": 0,
+                "low_stock": 0,
+                "total_value": 0.0,
+                "by_category": {}
+            }
+        }
+
+    data = result[0]
+
+    # Format category stats
+    by_category = {}
+    for cat in data.get("by_category", []):
+        if cat["_id"]:
+            cat_doc = await db.categories.find_one({"_id": ObjectId(cat["_id"])})
+            cat_name = cat_doc["name"] if cat_doc else str(cat["_id"])
+            by_category[cat_name] = cat["count"]
+
+    return {
+        "success": True,
+        "data": {
+            "total_products": data["total"][0]["count"] if data["total"] else 0,
+            "active_products": data["active"][0]["count"] if data["active"] else 0,
+            "out_of_stock": data["out_of_stock"][0]["count"] if data["out_of_stock"] else 0,
+            "low_stock": data["low_stock"][0]["count"] if data["low_stock"] else 0,
+            "total_value": data["total_value"][0]["value"] if data["total_value"] else 0.0,
+            "by_category": by_category
+        }
+    }
+
+
+@router.get("/products/tracking")
+async def get_stock_tracking(
+    days: int = Query(7, ge=1, le=90),
+    current_user: dict = Depends(require_product_manager),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get stock tracking history (Admin only).
+    Returns stock changes over time.
+    """
+    from datetime import timedelta
+
+    start_date = datetime.utcnow() - timedelta(days=days)
+
+    # Fetch stock history from stock_tracking collection
+    cursor = db.stock_tracking.find(
+        {"created_at": {"$gte": start_date}}
+    ).sort("created_at", 1).limit(1000)
+
+    tracking = await cursor.to_list(length=1000)
+
+    # Group by date
+    by_date = {}
+    for entry in tracking:
+        date_str = entry["created_at"].date().isoformat()
+        if date_str not in by_date:
+            by_date[date_str] = {
+                "date": date_str,
+                "changes": 0,
+                "products_updated": set()
+            }
+
+        by_date[date_str]["changes"] += 1
+        by_date[date_str]["products_updated"].add(entry.get("product_id"))
+
+    # Format response
+    timeline = [
+        {
+            "date": data["date"],
+            "changes": data["changes"],
+            "products_updated": len(data["products_updated"])
+        }
+        for data in by_date.values()
+    ]
+
+    return {
+        "success": True,
+        "data": {
+            "period_days": days,
+            "timeline": timeline,
+            "total_changes": sum(d["changes"] for d in timeline)
+        }
+    }

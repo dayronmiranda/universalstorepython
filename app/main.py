@@ -8,7 +8,7 @@ import logging
 
 from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
-from app.api.v1 import auth, users, products, orders, payments
+from app.api.v1 import auth, users, products, orders, payments, returns, support, admin
 
 # Configure logging
 logging.basicConfig(
@@ -44,10 +44,12 @@ app = FastAPI(
     ## Features
 
     * **Authentication**: Passwordless magic link authentication with JWT
-    * **Products**: Full CRUD operations for products and categories
-    * **Orders**: Shopping cart and order management with stock reservations
-    * **Payments**: Stripe integration for checkout and payment processing
-    * **Admin**: User and customer management
+    * **Products**: Full CRUD operations for products and categories with stats & analytics
+    * **Orders**: Shopping cart and order management with stock reservations & pickup locations
+    * **Payments**: Stripe integration for checkout, payment processing, refunds & disputes
+    * **Returns**: Complete returns management system with approval workflow
+    * **Support**: Real-time chat support with polling and assignment
+    * **Admin**: User and customer management, media uploads, database management, maintenance mode
 
     ## Authentication
 
@@ -175,6 +177,30 @@ app.include_router(
     payments.router,
     prefix="/api/payments",
     tags=["Payments"]
+)
+
+app.include_router(
+    returns.router,
+    prefix="/api/admin",
+    tags=["Returns"]
+)
+
+app.include_router(
+    support.router,
+    prefix="/api/support",
+    tags=["Support"]
+)
+
+app.include_router(
+    admin.router,
+    prefix="/api/admin",
+    tags=["Admin - Advanced"]
+)
+
+app.include_router(
+    admin.router_public,
+    prefix="/api",
+    tags=["Public"]
 )
 
 

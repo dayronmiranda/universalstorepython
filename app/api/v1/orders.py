@@ -947,3 +947,317 @@ async def get_pending_items(
             "byStatus": stats_by_status
         }
     }
+
+
+# Pickup Locations endpoints
+
+@router.get("/pickup-locations")
+async def list_pickup_locations(
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    List all active pickup locations (Public).
+    """
+    cursor = db.pickup_locations.find({"active": True})
+    locations = await cursor.to_list(length=None)
+
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": str(loc["_id"]),
+                "name": loc["name"],
+                "address": loc.get("address"),
+                "phone": loc.get("phone"),
+                "email": loc.get("email"),
+                "available_slots": loc.get("available_slots", []),
+                "instructions": loc.get("instructions")
+            }
+            for loc in locations
+        ]
+    }
+
+
+@router.post("/{order_id}/pickup/confirm")
+async def confirm_pickup(
+    order_id: str,
+    location_id: str,
+    pickup_date: datetime,
+    notes: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Confirm pickup for an order.
+    """
+    if not validate_object_id(order_id) or not validate_object_id(location_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid order ID or location ID"
+        )
+
+    order = await db.orders.find_one({"_id": ObjectId(order_id)})
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+
+    # Check ownership
+    if order["user_id"] != current_user["_id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized"
+        )
+
+    # Verify location exists
+    location = await db.pickup_locations.find_one({"_id": ObjectId(location_id), "active": True})
+    if not location:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pickup location not found"
+        )
+
+    # Generate pickup code
+    import secrets
+    pickup_code = f"PICK-{secrets.token_hex(4).upper()}"
+
+    # Create pickup confirmation
+    pickup_data = {
+        "order_id": order_id,
+        "location_id": location_id,
+        "location_name": location["name"],
+        "pickup_date": pickup_date,
+        "pickup_code": pickup_code,
+        "confirmed": False,
+        "notes": notes,
+        "created_at": datetime.utcnow()
+    }
+
+    await db.pickup_confirmations.insert_one(pickup_data)
+
+    # Update order
+    await db.orders.update_one(
+        {"_id": ObjectId(order_id)},
+        {
+            "$set": {
+                "pickup_code": pickup_code,
+                "pickup_location_id": location_id,
+                "pickup_date": pickup_date,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    return {
+        "success": True,
+        "message": "Pickup confirmed",
+        "data": {
+            "pickup_code": pickup_code,
+            "location": location["name"],
+            "pickup_date": pickup_date.isoformat()
+        }
+    }
+
+
+@router.post("/pickup/verify")
+async def verify_pickup_code(
+    pickup_code: str,
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Verify pickup code (Admin only - for warehouse staff).
+    """
+    order = await db.orders.find_one({"pickup_code": pickup_code})
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid pickup code"
+        )
+
+    # Mark as picked up
+    await db.orders.update_one(
+        {"_id": order["_id"]},
+        {
+            "$set": {
+                "status": "delivered",
+                "pickup_confirmed_at": datetime.utcnow(),
+                "pickup_confirmed_by": current_user["_id"],
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+
+    await db.pickup_confirmations.update_one(
+        {"pickup_code": pickup_code},
+        {
+            "$set": {
+                "confirmed": True,
+                "confirmed_at": datetime.utcnow(),
+                "confirmed_by": current_user["_id"]
+            }
+        }
+    )
+
+    return {
+        "success": True,
+        "message": "Pickup verified successfully",
+        "data": {
+            "order_number": order["order_number"],
+            "customer_name": order.get("customer_name"),
+            "customer_email": order.get("customer_email")
+        }
+    }
+
+
+@router.get("/pickup/suggest-times")
+async def suggest_pickup_times(
+    location_id: str,
+    preferred_date: Optional[datetime] = None,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Suggest available pickup times for a location.
+    """
+    if not validate_object_id(location_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid location ID"
+        )
+
+    location = await db.pickup_locations.find_one({"_id": ObjectId(location_id), "active": True})
+
+    if not location:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pickup location not found"
+        )
+
+    # Get available slots for the location
+    available_slots = location.get("available_slots", [])
+
+    # If preferred date provided, filter by day of week
+    if preferred_date:
+        day_of_week = preferred_date.weekday()
+        available_slots = [slot for slot in available_slots if slot.get("day_of_week") == day_of_week]
+
+    # Generate suggested times for next 7 days
+    from datetime import timedelta
+    today = datetime.utcnow()
+    suggested_times = []
+
+    for i in range(7):
+        check_date = today + timedelta(days=i)
+        day_of_week = check_date.weekday()
+
+        for slot in available_slots:
+            if slot.get("day_of_week") == day_of_week:
+                suggested_times.append({
+                    "date": check_date.date().isoformat(),
+                    "day_of_week": day_of_week,
+                    "start_time": slot.get("start_time"),
+                    "end_time": slot.get("end_time"),
+                    "available": True
+                })
+
+    return {
+        "success": True,
+        "data": {
+            "location": {
+                "id": str(location["_id"]),
+                "name": location["name"]
+            },
+            "suggested_times": suggested_times[:20]  # Limit to 20 suggestions
+        }
+    }
+
+
+# Stats & Analytics endpoint
+
+@router.get("/payment-stats")
+async def get_payment_stats(
+    days: int = Query(30, ge=1, le=365),
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get payment statistics (Admin only).
+    """
+    from datetime import timedelta
+
+    start_date = datetime.utcnow() - timedelta(days=days)
+
+    pipeline = [
+        {"$match": {"created_at": {"$gte": start_date}}},
+        {
+            "$facet": {
+                "total": [{"$count": "count"}],
+                "revenue": [{"$group": {"_id": None, "total": {"$sum": "$total"}}}],
+                "by_status": [
+                    {"$group": {"_id": "$payment_status", "count": {"$sum": 1}, "amount": {"$sum": "$total"}}}
+                ],
+                "by_date": [
+                    {
+                        "$group": {
+                            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$created_at"}},
+                            "orders": {"$sum": 1},
+                            "revenue": {"$sum": "$total"}
+                        }
+                    },
+                    {"$sort": {"_id": 1}}
+                ]
+            }
+        }
+    ]
+
+    result = await db.orders.aggregate(pipeline).to_list(length=1)
+
+    if not result:
+        return {
+            "success": True,
+            "data": {
+                "total_orders": 0,
+                "total_revenue": 0.0,
+                "by_status": {},
+                "timeline": []
+            }
+        }
+
+    data = result[0]
+
+    # Format status breakdown
+    by_status = {}
+    refunded_amount = 0.0
+
+    for status_data in data.get("by_status", []):
+        status_name = status_data["_id"] or "unknown"
+        by_status[status_name] = {
+            "count": status_data["count"],
+            "amount": status_data["amount"]
+        }
+        if status_name == "refunded":
+            refunded_amount = status_data["amount"]
+
+    return {
+        "success": True,
+        "data": {
+            "period_days": days,
+            "total_orders": data["total"][0]["count"] if data["total"] else 0,
+            "total_revenue": data["revenue"][0]["total"] if data["revenue"] else 0.0,
+            "pending_payments": by_status.get("pending", {}).get("count", 0),
+            "failed_payments": by_status.get("failed", {}).get("count", 0),
+            "refunded_amount": refunded_amount,
+            "by_status": by_status,
+            "timeline": [
+                {
+                    "date": entry["_id"],
+                    "orders": entry["orders"],
+                    "revenue": entry["revenue"]
+                }
+                for entry in data.get("by_date", [])
+            ]
+        }
+    }
