@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from datetime import datetime
 import logging
@@ -199,7 +200,7 @@ app.include_router(
 
 app.include_router(
     admin.router_public,
-    prefix="/api",
+    prefix="",
     tags=["Public"]
 )
 
@@ -208,22 +209,28 @@ app.include_router(
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
     """Custom 404 handler"""
-    return {
-        "success": False,
-        "error": "Not Found",
-        "detail": "The requested resource was not found"
-    }
+    return JSONResponse(
+        status_code=404,
+        content={
+            "success": False,
+            "error": "Not Found",
+            "detail": "The requested resource was not found"
+        }
+    )
 
 
 @app.exception_handler(500)
 async def internal_error_handler(request, exc):
     """Custom 500 handler"""
     logger.error(f"Internal server error: {str(exc)}")
-    return {
-        "success": False,
-        "error": "Internal Server Error",
-        "detail": "An unexpected error occurred. Please try again later."
-    }
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "error": "Internal Server Error",
+            "detail": "An unexpected error occurred. Please try again later."
+        }
+    )
 
 
 if __name__ == "__main__":

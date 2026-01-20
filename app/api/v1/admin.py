@@ -300,11 +300,17 @@ async def get_current_database(
     """
     Get current database information (Admin only).
     """
+    from app.config import settings
+    from app.database import database
+
+    # Check if database connection exists
+    is_connected = database.client is not None
+
     return {
         "success": True,
         "data": {
-            "database_name": database.db.name if database.db else None,
-            "connected": database.db is not None
+            "database_name": settings.mongodb_db_name,
+            "connected": is_connected
         }
     }
 
