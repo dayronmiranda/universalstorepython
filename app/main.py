@@ -9,7 +9,7 @@ import logging
 
 from app.config import settings
 from app.database import connect_to_mongo, close_mongo_connection
-from app.api.v1 import auth, users, products, orders, payments, returns, support, admin
+from app.api.v1 import auth, users, products, orders, payments, returns, support, admin, store_config, email_templates, pickup_locations
 
 # Configure logging
 logging.basicConfig(
@@ -202,6 +202,24 @@ app.include_router(
     admin.router_public,
     prefix="",
     tags=["Public"]
+)
+
+app.include_router(
+    store_config.router,
+    prefix="/api/admin/store",
+    tags=["Admin - Store Config"]
+)
+
+app.include_router(
+    email_templates.router,
+    prefix="/api/admin/store/email-templates",
+    tags=["Admin - Email Templates"]
+)
+
+app.include_router(
+    pickup_locations.router,
+    prefix="/api/admin/store/pickup-locations",
+    tags=["Admin - Pickup Locations"]
 )
 
 
