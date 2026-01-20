@@ -31,6 +31,20 @@ from app.utils.validators import validate_object_id
 router = APIRouter()
 
 
+def convert_message_to_response(msg: dict) -> dict:
+    """Convert MongoDB message document to MessageResponse format."""
+    return {
+        "id": msg.get("_id"),
+        "sender_type": msg.get("sender_type"),
+        "sender_id": msg.get("sender_id"),
+        "sender_name": msg.get("sender_name"),
+        "message": msg.get("message"),
+        "attachments": msg.get("attachments", []),
+        "read": msg.get("read", False),
+        "created_at": msg.get("created_at")
+    }
+
+
 @router.get("", response_model=List[ChatResponse])
 async def list_chats(
     page: int = Query(1, ge=1),
@@ -211,7 +225,7 @@ async def get_chat(
         created_at=chat["created_at"],
         updated_at=chat["updated_at"],
         closed_at=chat.get("closed_at"),
-        messages=[MessageResponse(**msg) for msg in chat.get("messages", [])]
+        messages=[MessageResponse(**convert_message_to_response(msg)) for msg in chat.get("messages", [])]
     )
 
 
@@ -314,7 +328,7 @@ async def get_messages(
             detail="Not authorized to access this chat"
         )
 
-    return [MessageResponse(**msg) for msg in chat.get("messages", [])]
+    return [MessageResponse(**convert_message_to_response(msg)) for msg in chat.get("messages", [])]
 
 
 @router.post("/{chat_id}/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
@@ -383,7 +397,7 @@ async def send_message(
         }
     )
 
-    return MessageResponse(**message)
+    return MessageResponse(**convert_message_to_response(message))
 
 
 @router.patch("/{chat_id}/status")
