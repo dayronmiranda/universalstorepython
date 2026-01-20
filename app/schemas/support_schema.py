@@ -120,3 +120,81 @@ class ChatRateRequest(BaseModel):
                 "comment": "Excellent support, very helpful!"
             }
         }
+
+
+# Agent-specific schemas
+
+class AgentStatusUpdate(BaseModel):
+    """Schema for updating agent status"""
+    status: str  # online, away, offline
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "online"
+            }
+        }
+
+
+class ChatTransferRequest(BaseModel):
+    """Schema for transferring chat to another agent"""
+    agent_id: str
+    reason: Optional[str] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "agent_id": "507f1f77bcf86cd799439011",
+                "reason": "Requires specialist knowledge"
+            }
+        }
+
+
+class ChatEscalateRequest(BaseModel):
+    """Schema for escalating a chat"""
+    reason: str
+    priority: Optional[str] = "high"
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "reason": "Customer is requesting refund",
+                "priority": "high"
+            }
+        }
+
+
+class ChatReleaseRequest(BaseModel):
+    """Schema for releasing a chat back to queue"""
+    reason: Optional[str] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "reason": "Unable to assist further"
+            }
+        }
+
+
+class ChatResolveRequest(BaseModel):
+    """Schema for resolving a chat"""
+    resolution_note: Optional[str] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "resolution_note": "Issue resolved, customer satisfied"
+            }
+        }
+
+
+class ChatPriorityUpdate(BaseModel):
+    """Schema for updating chat priority"""
+    priority: str  # low, normal, high, urgent
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "priority": "high"
+            }
+        }
