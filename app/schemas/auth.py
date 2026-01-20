@@ -74,3 +74,7 @@ class UpdateProfileRequest(BaseModel):
                 "phone": "+1234567890"
             }
         }
+
+
+# Rebuild models to resolve forward references
+TokenResponse.model_rebuild()

@@ -57,3 +57,7 @@ htmlcov/
 .cache/
 tmp/
 temp/
+api.pid
+api.log
+test_results.md
+venv/
