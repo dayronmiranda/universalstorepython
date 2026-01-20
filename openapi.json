@@ -4478,6 +4478,1146 @@
         }
       }
     },
+    "/admin/store/config": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get store configuration",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/StoreConfig"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      },
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update store configuration",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateStoreConfigRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Configuration updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/StoreConfig"},
+                    "changes": {"type": "integer"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/branding": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update branding configuration",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateBrandingRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Branding updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/BrandingConfig"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/locale": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update locale configuration",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateLocaleRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Locale updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/LocaleConfig"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/contact": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update contact information",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateContactRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contact info updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/ContactInfo"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/social": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update social media links",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateSocialLinksRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Social links updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/SocialLinks"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/email": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update email configuration",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateEmailConfigRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email config updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/EmailConfig"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/payment": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update payment configuration",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdatePaymentConfigRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment config updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/PaymentConfig"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/smtp": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get SMTP configuration",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "SMTP config retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "configured": {"type": "boolean"},
+                        "enabled": {"type": "boolean"},
+                        "verified": {"type": "boolean"},
+                        "host": {"type": "string"},
+                        "port": {"type": "integer"},
+                        "secure": {"type": "boolean"},
+                        "user": {"type": "string"},
+                        "hasPassword": {"type": "boolean"},
+                        "lastTestedAt": {"type": "string", "format": "date-time"},
+                        "lastTestResult": {"type": "string"},
+                        "configSource": {
+                          "type": "string",
+                          "enum": ["database", "environment", "none"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      },
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update SMTP configuration",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateSmtpConfigRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SMTP config updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "configured": {"type": "boolean"},
+                        "enabled": {"type": "boolean"},
+                        "verified": {"type": "boolean"},
+                        "host": {"type": "string"},
+                        "port": {"type": "integer"},
+                        "secure": {"type": "boolean"},
+                        "user": {"type": "string"},
+                        "hasPassword": {"type": "boolean"},
+                        "lastTestedAt": {"type": "string", "format": "date-time"},
+                        "lastTestResult": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/smtp/test": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Test SMTP connection",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/TestSmtpRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SMTP test completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "responseTime": {"type": "number"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/config/smtp/send-test": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Send test email via SMTP",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/SendTestEmailRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test email sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "messageId": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/email-templates": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all email templates",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Templates retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/EmailTemplate"}
+                    },
+                    "grouped": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {"$ref": "#/components/schemas/EmailTemplate"}
+                      }
+                    },
+                    "templateTypes": {
+                      "type": "array",
+                      "items": {"type": "string"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create a new email template",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/CreateEmailTemplate"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Template created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/EmailTemplate"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/admin/store/email-templates/variables": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get available template variables",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Variables retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "common": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/EmailTemplateVariable"}
+                        },
+                        "byType": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/EmailTemplateVariable"}
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/email-templates/by-type/{type}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get templates by type",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["magic_link", "email_verification", "welcome", "password_reset", "order_confirmation", "order_ready", "order_cancelled", "order_shipped", "payment_received", "payment_failed", "account_deactivated"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/EmailTemplate"}
+                    },
+                    "availableVariables": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/EmailTemplateVariable"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/admin/store/email-templates/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update an email template",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/UpdateEmailTemplate"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/EmailTemplate"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete an email template",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/EmailTemplate"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/admin/store/email-templates/{id}/preview": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Preview an email template",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "previewData": {
+                    "type": "object",
+                    "additionalProperties": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preview generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "subject": {"type": "string"},
+                        "html": {"type": "string"},
+                        "text": {"type": "string"},
+                        "sampleData": {
+                          "type": "object",
+                          "additionalProperties": {"type": "string"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/admin/store/email-templates/{id}/activate": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Activate an email template",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template activated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/EmailTemplate"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/admin/store/email-templates/by-type/{type}/reset": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Reset template to default",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["magic_link", "email_verification", "welcome", "password_reset", "order_confirmation", "order_ready", "order_cancelled", "order_shipped", "payment_received", "payment_failed", "account_deactivated"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/EmailTemplate"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/admin/store/email-templates/test": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Send test email",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["recipientEmail"],
+                "properties": {
+                  "templateId": {"type": "string"},
+                  "templateType": {
+                    "type": "string",
+                    "enum": ["magic_link", "email_verification", "welcome", "password_reset", "order_confirmation", "order_ready", "order_cancelled", "order_shipped", "payment_received", "payment_failed", "account_deactivated"]
+                  },
+                  "recipientEmail": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "previewData": {
+                    "type": "object",
+                    "additionalProperties": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test email sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "templateId": {"type": "string"},
+                        "templateType": {"type": "string"},
+                        "recipientEmail": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
+    "/admin/store/pickup-locations": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get all pickup locations",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Pickup locations retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/PickupLocation"}
+                    },
+                    "total": {"type": "integer"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      },
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create a new pickup location",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "address", "city", "country", "estimatedCapacity"],
+                "properties": {
+                  "slug": {"type": "string"},
+                  "name": {"type": "string"},
+                  "description": {"type": "string"},
+                  "address": {"type": "string"},
+                  "city": {"type": "string"},
+                  "province": {"type": "string"},
+                  "postalCode": {"type": "string"},
+                  "country": {"type": "string"},
+                  "coordinates": {
+                    "type": "object",
+                    "properties": {
+                      "lat": {"type": "number"},
+                      "lng": {"type": "number"}
+                    }
+                  },
+                  "operatingHours": {"$ref": "#/components/schemas/WeeklySchedule"},
+                  "phone": {"type": "string"},
+                  "email": {"type": "string", "format": "email"},
+                  "urgentPhone": {"type": "string"},
+                  "estimatedCapacity": {"type": "integer"},
+                  "maxOrdersPerSlot": {"type": "integer"},
+                  "slotDurationMinutes": {"type": "integer"},
+                  "isActive": {"type": "boolean"},
+                  "isDefault": {"type": "boolean"},
+                  "sortOrder": {"type": "integer"},
+                  "internalNotes": {"type": "string"},
+                  "pickupInstructions": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pickup location created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/PickupLocation"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "403": {"$ref": "#/components/responses/Forbidden"}
+        }
+      }
+    },
+    "/admin/store/pickup-locations/{id}": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update a pickup location",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slug": {"type": "string"},
+                  "name": {"type": "string"},
+                  "description": {"type": "string"},
+                  "address": {"type": "string"},
+                  "city": {"type": "string"},
+                  "province": {"type": "string"},
+                  "postalCode": {"type": "string"},
+                  "country": {"type": "string"},
+                  "coordinates": {
+                    "type": "object",
+                    "properties": {
+                      "lat": {"type": "number"},
+                      "lng": {"type": "number"}
+                    }
+                  },
+                  "operatingHours": {"$ref": "#/components/schemas/WeeklySchedule"},
+                  "phone": {"type": "string"},
+                  "email": {"type": "string", "format": "email"},
+                  "urgentPhone": {"type": "string"},
+                  "estimatedCapacity": {"type": "integer"},
+                  "maxOrdersPerSlot": {"type": "integer"},
+                  "slotDurationMinutes": {"type": "integer"},
+                  "isActive": {"type": "boolean"},
+                  "isDefault": {"type": "boolean"},
+                  "sortOrder": {"type": "integer"},
+                  "internalNotes": {"type": "string"},
+                  "pickupInstructions": {"type": "string"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pickup location updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/PickupLocation"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Delete a pickup location",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pickup location deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/PickupLocation"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/admin/store/pickup-locations/{id}/toggle": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Toggle pickup location active status",
+        "description": "Activates or deactivates a pickup location (toggle isActive)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pickup location status toggled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/PickupLocation"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorized"},
+          "404": {"$ref": "#/components/responses/NotFound"}
+        }
+      }
+    },
+    "/admin/store/pickup-locations/reorder": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Reorder pickup locations",
+        "security": [{"BearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["order"],
+                "properties": {
+                  "order": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["id", "sortOrder"],
+                      "properties": {
+                        "id": {"type": "string"},
+                        "sortOrder": {"type": "integer"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pickup locations reordered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/PickupLocation"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/BadRequest"},
+          "401": {"$ref": "#/components/responses/Unauthorized"}
+        }
+      }
+    },
     "/admin/database/status": {
       "get": {
         "tags": [
@@ -6230,23 +7370,147 @@
           }
         }
       },
+      "OperatingHours": {
+        "type": "object",
+        "properties": {
+          "open": {
+            "type": "string",
+            "example": "09:00"
+          },
+          "close": {
+            "type": "string",
+            "example": "18:00"
+          }
+        }
+      },
+      "WeeklySchedule": {
+        "type": "object",
+        "properties": {
+          "monday": {
+            "$ref": "#/components/schemas/OperatingHours"
+          },
+          "tuesday": {
+            "$ref": "#/components/schemas/OperatingHours"
+          },
+          "wednesday": {
+            "$ref": "#/components/schemas/OperatingHours"
+          },
+          "thursday": {
+            "$ref": "#/components/schemas/OperatingHours"
+          },
+          "friday": {
+            "$ref": "#/components/schemas/OperatingHours"
+          },
+          "saturday": {
+            "$ref": "#/components/schemas/OperatingHours"
+          },
+          "sunday": {
+            "$ref": "#/components/schemas/OperatingHours"
+          }
+        }
+      },
       "PickupLocation": {
         "type": "object",
         "properties": {
           "_id": {
             "type": "string"
           },
+          "slug": {
+            "type": "string"
+          },
           "name": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "address": {
-            "type": "object"
+            "type": "string"
           },
-          "hours": {
-            "type": "object"
+          "city": {
+            "type": "string"
           },
-          "active": {
+          "province": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "coordinates": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            }
+          },
+          "operatingHours": {
+            "$ref": "#/components/schemas/WeeklySchedule"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "urgentPhone": {
+            "type": "string"
+          },
+          "estimatedCapacity": {
+            "type": "integer"
+          },
+          "maxOrdersPerSlot": {
+            "type": "integer"
+          },
+          "slotDurationMinutes": {
+            "type": "integer"
+          },
+          "isActive": {
             "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "internalNotes": {
+            "type": "string"
+          },
+          "pickupInstructions": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "EmailTemplateVariable": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "{{userName}}"
+          },
+          "description": {
+            "type": "string",
+            "example": "Nombre del usuario"
+          },
+          "example": {
+            "type": "string",
+            "example": "Juan"
           }
         }
       },
@@ -6256,26 +7520,590 @@
           "_id": {
             "type": "string"
           },
+          "type": {
+            "type": "string",
+            "enum": [
+              "magic_link",
+              "email_verification",
+              "welcome",
+              "password_reset",
+              "order_confirmation",
+              "order_ready",
+              "order_cancelled",
+              "order_shipped",
+              "payment_received",
+              "payment_failed",
+              "account_deactivated"
+            ]
+          },
           "name": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "subject": {
             "type": "string"
           },
-          "htmlContent": {
+          "htmlBody": {
             "type": "string"
           },
-          "textContent": {
+          "textBody": {
             "type": "string"
           },
-          "variables": {
+          "availableVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmailTemplateVariable"
+            }
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "previewData": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LocaleConfig": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "currencySymbol": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "phoneCountryCode": {
+            "type": "string"
+          }
+        }
+      },
+      "BrandingConfig": {
+        "type": "object",
+        "properties": {
+          "logo": {
+            "type": "string"
+          },
+          "logoLight": {
+            "type": "string"
+          },
+          "favicon": {
+            "type": "string"
+          },
+          "primaryColor": {
+            "type": "string"
+          },
+          "secondaryColor": {
+            "type": "string"
+          }
+        }
+      },
+      "ContactInfo": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialLinks": {
+        "type": "object",
+        "properties": {
+          "facebook": {
+            "type": "string"
+          },
+          "instagram": {
+            "type": "string"
+          },
+          "twitter": {
+            "type": "string"
+          },
+          "tiktok": {
+            "type": "string"
+          },
+          "youtube": {
+            "type": "string"
+          },
+          "whatsapp": {
+            "type": "string"
+          }
+        }
+      },
+      "SmtpConfig": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "secure": {
+            "type": "boolean"
+          },
+          "auth": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "string"
+              },
+              "pass": {
+                "type": "string"
+              }
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "lastTestedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastTestResult": {
+            "type": "string"
+          }
+        }
+      },
+      "EmailConfig": {
+        "type": "object",
+        "properties": {
+          "fromName": {
+            "type": "string"
+          },
+          "fromEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "replyTo": {
+            "type": "string",
+            "format": "email"
+          },
+          "footerText": {
+            "type": "string"
+          },
+          "smtp": {
+            "$ref": "#/components/schemas/SmtpConfig"
+          }
+        }
+      },
+      "PaymentConfig": {
+        "type": "object",
+        "properties": {
+          "stripeStatementDescriptor": {
+            "type": "string"
+          },
+          "stripeCurrency": {
+            "type": "string"
+          },
+          "stripeCustomDomain": {
+            "type": "string"
+          },
+          "taxRate": {
+            "type": "number"
+          },
+          "taxIncluded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MagicLinkConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "expirationMinutes": {
+            "type": "integer"
+          },
+          "allowNewUserRegistration": {
+            "type": "boolean"
+          },
+          "requireIpMatch": {
+            "type": "boolean"
+          },
+          "maxAttemptsPerHour": {
+            "type": "integer"
+          }
+        }
+      },
+      "AuthConfig": {
+        "type": "object",
+        "properties": {
+          "magicLink": {
+            "$ref": "#/components/schemas/MagicLinkConfig"
+          },
+          "sessionDurationDays": {
+            "type": "integer"
+          },
+          "requireEmailVerification": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OperationSettings": {
+        "type": "object",
+        "properties": {
+          "requirePickupPerson": {
+            "type": "boolean"
+          },
+          "orderExpirationMinutes": {
+            "type": "integer"
+          },
+          "stockReservationMinutes": {
+            "type": "integer"
+          }
+        }
+      },
+      "CacheSettings": {
+        "type": "object",
+        "properties": {
+          "productsTTL": {
+            "type": "integer"
+          },
+          "categoriesTTL": {
+            "type": "integer"
+          },
+          "stockTTL": {
+            "type": "integer"
+          },
+          "ordersTTL": {
+            "type": "integer"
+          },
+          "cartTTL": {
+            "type": "integer"
+          }
+        }
+      },
+      "RetentionSettings": {
+        "type": "object",
+        "properties": {
+          "cartExpiryDays": {
+            "type": "integer"
+          },
+          "cartHistoryDays": {
+            "type": "integer"
+          },
+          "messageHistoryDays": {
+            "type": "integer"
+          },
+          "emailVerificationHours": {
+            "type": "integer"
+          },
+          "orderReturnWindowDays": {
+            "type": "integer"
+          }
+        }
+      },
+      "PaginationSettings": {
+        "type": "object",
+        "properties": {
+          "defaultPageSize": {
+            "type": "integer"
+          },
+          "maxPageSize": {
+            "type": "integer"
+          },
+          "auditLogLimit": {
+            "type": "integer"
+          },
+          "transactionsLimit": {
+            "type": "integer"
+          }
+        }
+      },
+      "NotificationSettings": {
+        "type": "object",
+        "properties": {
+          "emailEnabled": {
+            "type": "boolean"
+          },
+          "orderNotificationsEmail": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "FeatureFlags": {
+        "type": "object",
+        "properties": {
+          "reviewsEnabled": {
+            "type": "boolean"
+          },
+          "wishlistEnabled": {
+            "type": "boolean"
+          },
+          "couponsEnabled": {
+            "type": "boolean"
+          },
+          "loyaltyPointsEnabled": {
+            "type": "boolean"
+          },
+          "multiLanguageEnabled": {
+            "type": "boolean"
+          },
+          "darkModeEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CurrencyConfig": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "symbolPosition": {
+            "type": "string",
+            "enum": ["before", "after"]
+          },
+          "decimalPlaces": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MultiCurrencySettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "defaultCurrency": {
+            "type": "string"
+          },
+          "supportedCurrencies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurrencyConfig"
+            }
+          }
+        }
+      },
+      "ReservationSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "defaultExpirationDays": {
+            "type": "integer"
+          },
+          "maxExpirationDays": {
+            "type": "integer"
+          },
+          "requirePickupLocation": {
+            "type": "boolean"
+          },
+          "sendReminderBeforeExpiration": {
+            "type": "boolean"
+          },
+          "reminderHoursBefore": {
+            "type": "integer"
+          }
+        }
+      },
+      "StockAlertSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "maxAlertsPerUser": {
+            "type": "integer"
+          },
+          "alertExpirationDays": {
+            "type": "integer"
+          },
+          "allowGuestSubscription": {
+            "type": "boolean"
+          },
+          "notifyOnPartialStock": {
+            "type": "boolean"
+          },
+          "partialStockThreshold": {
+            "type": "integer"
+          }
+        }
+      },
+      "MaintenanceSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "estimatedEndTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "allowedRoles": {
             "type": "array",
             "items": {
               "type": "string"
             }
           },
-          "isDefault": {
+          "allowedUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowedIPs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "showCountdown": {
             "type": "boolean"
+          },
+          "customPageUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "StoreConfig": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string",
+            "enum": ["main"]
+          },
+          "name": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "frontendUrl": {
+            "type": "string"
+          },
+          "adminUrl": {
+            "type": "string"
+          },
+          "supportUrl": {
+            "type": "string"
+          },
+          "locale": {
+            "$ref": "#/components/schemas/LocaleConfig"
+          },
+          "branding": {
+            "$ref": "#/components/schemas/BrandingConfig"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/ContactInfo"
+          },
+          "socialLinks": {
+            "$ref": "#/components/schemas/SocialLinks"
+          },
+          "email": {
+            "$ref": "#/components/schemas/EmailConfig"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentConfig"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/AuthConfig"
+          },
+          "operationSettings": {
+            "$ref": "#/components/schemas/OperationSettings"
+          },
+          "cacheSettings": {
+            "$ref": "#/components/schemas/CacheSettings"
+          },
+          "retentionSettings": {
+            "$ref": "#/components/schemas/RetentionSettings"
+          },
+          "paginationSettings": {
+            "$ref": "#/components/schemas/PaginationSettings"
+          },
+          "notificationSettings": {
+            "$ref": "#/components/schemas/NotificationSettings"
+          },
+          "featureFlags": {
+            "$ref": "#/components/schemas/FeatureFlags"
+          },
+          "multiCurrencySettings": {
+            "$ref": "#/components/schemas/MultiCurrencySettings"
+          },
+          "reservationSettings": {
+            "$ref": "#/components/schemas/ReservationSettings"
+          },
+          "stockAlertSettings": {
+            "$ref": "#/components/schemas/StockAlertSettings"
+          },
+          "maintenanceSettings": {
+            "$ref": "#/components/schemas/MaintenanceSettings"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -6689,28 +8517,45 @@
       "CreateEmailTemplate": {
         "type": "object",
         "required": [
+          "type",
           "name",
           "subject",
-          "htmlContent"
+          "htmlBody"
         ],
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "magic_link",
+              "email_verification",
+              "welcome",
+              "password_reset",
+              "order_confirmation",
+              "order_ready",
+              "order_cancelled",
+              "order_shipped",
+              "payment_received",
+              "payment_failed",
+              "account_deactivated"
+            ]
+          },
           "name": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "subject": {
             "type": "string"
           },
-          "htmlContent": {
+          "htmlBody": {
             "type": "string"
           },
-          "textContent": {
+          "textBody": {
             "type": "string"
           },
-          "variables": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
@@ -6720,13 +8565,242 @@
           "name": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "subject": {
             "type": "string"
           },
-          "htmlContent": {
+          "htmlBody": {
             "type": "string"
           },
-          "textContent": {
+          "textBody": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateStoreConfigRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "frontendUrl": {
+            "type": "string"
+          },
+          "adminUrl": {
+            "type": "string"
+          },
+          "supportUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateBrandingRequest": {
+        "type": "object",
+        "properties": {
+          "logo": {
+            "type": "string"
+          },
+          "logoLight": {
+            "type": "string"
+          },
+          "favicon": {
+            "type": "string"
+          },
+          "primaryColor": {
+            "type": "string"
+          },
+          "secondaryColor": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateLocaleRequest": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "currencySymbol": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "phoneCountryCode": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateContactRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateSocialLinksRequest": {
+        "type": "object",
+        "properties": {
+          "facebook": {
+            "type": "string"
+          },
+          "instagram": {
+            "type": "string"
+          },
+          "twitter": {
+            "type": "string"
+          },
+          "tiktok": {
+            "type": "string"
+          },
+          "youtube": {
+            "type": "string"
+          },
+          "whatsapp": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateEmailConfigRequest": {
+        "type": "object",
+        "properties": {
+          "fromName": {
+            "type": "string"
+          },
+          "fromEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "replyTo": {
+            "type": "string",
+            "format": "email"
+          },
+          "footerText": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdatePaymentConfigRequest": {
+        "type": "object",
+        "properties": {
+          "stripeStatementDescriptor": {
+            "type": "string"
+          },
+          "stripeCurrency": {
+            "type": "string"
+          },
+          "stripeCustomDomain": {
+            "type": "string"
+          },
+          "taxRate": {
+            "type": "number"
+          },
+          "taxIncluded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateSmtpConfigRequest": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "secure": {
+            "type": "boolean"
+          },
+          "user": {
+            "type": "string"
+          },
+          "pass": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TestSmtpRequest": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "secure": {
+            "type": "boolean"
+          },
+          "user": {
+            "type": "string"
+          },
+          "pass": {
+            "type": "string"
+          }
+        }
+      },
+      "SendTestEmailRequest": {
+        "type": "object",
+        "required": ["toEmail"],
+        "properties": {
+          "toEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "secure": {
+            "type": "boolean"
+          },
+          "user": {
+            "type": "string"
+          },
+          "pass": {
             "type": "string"
           }
         }
