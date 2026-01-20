@@ -17,6 +17,8 @@ from app.schemas.order import (
     OrderCreate,
     OrderResponse,
     OrderItemResponse,
+    OrderStatusUpdate,
+    OrderNoteCreate,
 )
 from app.schemas.common import SuccessResponse
 from app.utils.validators import validate_object_id
@@ -320,6 +322,127 @@ async def clear_cart(
     )
 
 
+@router.post("/carts/{cart_id}/keep-alive")
+async def keep_cart_alive(
+    cart_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Keep cart alive by extending expiration time by 30 minutes.
+    """
+    if not validate_object_id(cart_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid cart ID"
+        )
+
+    user_id = current_user["_id"]
+
+    # Find cart
+    cart = await db.carts.find_one({"_id": ObjectId(cart_id), "user_id": user_id})
+
+    if not cart:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cart not found"
+        )
+
+    # Check if cart has items
+    if not cart.get("items"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot extend expiration of empty cart"
+        )
+
+    # Extend expiration by 30 minutes
+    new_expiration = datetime.utcnow() + timedelta(minutes=30)
+
+    await db.carts.update_one(
+        {"_id": ObjectId(cart_id)},
+        {
+            "$set": {
+                "reserved_until": new_expiration,
+                "updated_at": datetime.utcnow(),
+            }
+        }
+    )
+
+    return {
+        "success": True,
+        "data": {
+            "message": "Cart expiration extended",
+            "expiresAt": new_expiration.isoformat()
+        }
+    }
+
+
+@router.get("/carts/{cart_id}/status")
+async def get_cart_status(
+    cart_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get cart expiration status and time remaining.
+    Returns status: active (>5 min), expiring_soon (1-5 min), or expired (<=0 min).
+    """
+    if not validate_object_id(cart_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid cart ID"
+        )
+
+    user_id = current_user["_id"]
+
+    # Find cart
+    cart = await db.carts.find_one({"_id": ObjectId(cart_id), "user_id": user_id})
+
+    if not cart:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cart not found"
+        )
+
+    # Calculate time remaining
+    reserved_until = cart.get("reserved_until")
+    now = datetime.utcnow()
+
+    if not reserved_until:
+        # No expiration set (empty cart)
+        minutes_remaining = 0
+        status_str = "expired"
+        expires_at = None
+    else:
+        time_delta = reserved_until - now
+        minutes_remaining = time_delta.total_seconds() / 60
+        expires_at = reserved_until.isoformat()
+
+        # Determine status based on minutes remaining
+        if minutes_remaining <= 0:
+            status_str = "expired"
+        elif minutes_remaining <= 5:
+            status_str = "expiring_soon"
+        else:
+            status_str = "active"
+
+    # Get cart stats
+    item_count = len(cart.get("items", []))
+    total_value = cart.get("total", 0.0)
+
+    return {
+        "success": True,
+        "data": {
+            "cartId": str(cart["_id"]),
+            "status": status_str,
+            "minutesRemaining": max(0, minutes_remaining),
+            "expiresAt": expires_at,
+            "itemCount": item_count,
+            "totalValue": total_value
+        }
+    }
+
+
 # Order endpoints
 
 @router.get("/orders", response_model=List[OrderResponse])
@@ -604,3 +727,223 @@ async def cancel_order(
         created_at=updated_order.get("created_at", datetime.utcnow()),
         updated_at=updated_order.get("updated_at", datetime.utcnow()),
     )
+
+@router.patch("/orders/{order_id}/status", response_model=OrderResponse)
+async def update_order_status(
+    order_id: str,
+    status_update: OrderStatusUpdate,
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Update order status (Admin only).
+    """
+    if not validate_object_id(order_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid order ID"
+        )
+
+    order = await db.orders.find_one({"_id": ObjectId(order_id)})
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+
+    # Update order status
+    await db.orders.update_one(
+        {"_id": ObjectId(order_id)},
+        {
+            "$set": {
+                "status": status_update.status,
+                "updated_at": datetime.utcnow(),
+            }
+        }
+    )
+
+    # Fetch updated order
+    updated_order = await db.orders.find_one({"_id": ObjectId(order_id)})
+
+    return OrderResponse(
+        id=str(updated_order["_id"]),
+        order_number=updated_order["order_number"],
+        user_id=updated_order["user_id"],
+        items=[OrderItemResponse(**item) for item in updated_order.get("items", [])],
+        total=updated_order.get("total", 0.0),
+        status=updated_order.get("status", "pending"),
+        payment_status=updated_order.get("payment_status", "pending"),
+        payment_intent_id=updated_order.get("payment_intent_id"),
+        shipping_address=updated_order.get("shipping_address"),
+        customer_email=updated_order.get("customer_email"),
+        customer_name=updated_order.get("customer_name"),
+        notes=updated_order.get("notes"),
+        created_at=updated_order.get("created_at", datetime.utcnow()),
+        updated_at=updated_order.get("updated_at", datetime.utcnow()),
+    )
+
+
+@router.post("/orders/{order_id}/notes")
+async def add_order_note(
+    order_id: str,
+    note_data: OrderNoteCreate,
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Add note to order (Admin only).
+    """
+    if not validate_object_id(order_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid order ID"
+        )
+
+    order = await db.orders.find_one({"_id": ObjectId(order_id)})
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+
+    # Create note entry
+    note_entry = {
+        "note": note_data.note,
+        "created_by": current_user["_id"],
+        "created_by_name": current_user.get("name") or current_user.get("email"),
+        "created_at": datetime.utcnow()
+    }
+
+    # Add note to order
+    await db.orders.update_one(
+        {"_id": ObjectId(order_id)},
+        {
+            "$push": {"notes_history": note_entry},
+            "$set": {"updated_at": datetime.utcnow()}
+        }
+    )
+
+    return {
+        "success": True,
+        "message": "Note added successfully",
+        "data": note_entry
+    }
+
+
+@router.get("/orders/all", response_model=List[OrderResponse])
+async def list_all_orders(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    List all orders (Admin only).
+    """
+    # Build query
+    query = {}
+
+    if status:
+        query["status"] = status
+
+    if search:
+        query["$or"] = [
+            {"order_number": {"$regex": search, "$options": "i"}},
+            {"customer_email": {"$regex": search, "$options": "i"}},
+            {"customer_name": {"$regex": search, "$options": "i"}},
+        ]
+
+    skip = (page - 1) * limit
+
+    cursor = db.orders.find(query).sort("created_at", -1).skip(skip).limit(limit)
+    orders = await cursor.to_list(length=limit)
+
+    return [
+        OrderResponse(
+            id=str(order["_id"]),
+            order_number=order["order_number"],
+            user_id=order["user_id"],
+            items=[OrderItemResponse(**item) for item in order.get("items", [])],
+            total=order.get("total", 0.0),
+            status=order.get("status", "pending"),
+            payment_status=order.get("payment_status", "pending"),
+            payment_intent_id=order.get("payment_intent_id"),
+            shipping_address=order.get("shipping_address"),
+            customer_email=order.get("customer_email"),
+            customer_name=order.get("customer_name"),
+            notes=order.get("notes"),
+            created_at=order.get("created_at", datetime.utcnow()),
+            updated_at=order.get("updated_at", datetime.utcnow()),
+        )
+        for order in orders
+    ]
+
+
+@router.get("/orders/pending-items")
+async def get_pending_items(
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get stats about pending order items (Admin only).
+    Returns counts by status and total value.
+    """
+    # Aggregate pending orders
+    pipeline = [
+        {
+            "$match": {
+                "status": {"$in": ["pending", "paid", "processing"]}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$status",
+                "count": {"$sum": 1},
+                "total_value": {"$sum": "$total"},
+                "total_items": {
+                    "$sum": {
+                        "$reduce": {
+                            "input": "$items",
+                            "initialValue": 0,
+                            "in": {"$add": ["$$value", "$$this.quantity"]}
+                        }
+                    }
+                }
+            }
+        }
+    ]
+
+    results = await db.orders.aggregate(pipeline).to_list(length=None)
+
+    # Format response
+    stats_by_status = {}
+    total_orders = 0
+    total_value = 0.0
+    total_items = 0
+
+    for result in results:
+        status_name = result["_id"]
+        stats_by_status[status_name] = {
+            "orderCount": result["count"],
+            "totalValue": result["total_value"],
+            "itemCount": result["total_items"]
+        }
+        total_orders += result["count"]
+        total_value += result["total_value"]
+        total_items += result["total_items"]
+
+    return {
+        "success": True,
+        "data": {
+            "summary": {
+                "totalOrders": total_orders,
+                "totalValue": total_value,
+                "totalItems": total_items
+            },
+            "byStatus": stats_by_status
+        }
+    }

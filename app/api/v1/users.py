@@ -349,3 +349,114 @@ async def get_customer(
         created_at=customer.get("created_at", datetime.utcnow()),
         updated_at=customer.get("updated_at", datetime.utcnow()),
     )
+
+
+@router.put("/users/{user_id}/status")
+async def update_user_status(
+    user_id: str,
+    active: bool,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(require_admin)
+):
+    """
+    Update user active status (Admin only).
+    Requires admin role.
+    """
+    if not validate_object_id(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID"
+        )
+
+    # Prevent self-deactivation
+    if user_id == current_user["_id"] and not active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot deactivate your own account"
+        )
+
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Update user status
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"active": active, "updated_at": datetime.utcnow()}}
+    )
+
+    return {
+        "success": True,
+        "message": f"User {'activated' if active else 'deactivated'} successfully"
+    }
+
+
+@router.get("/customers/{customer_id}/orders")
+async def get_customer_orders(
+    customer_id: str,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(require_admin)
+):
+    """
+    Get all orders for a specific customer (Admin only).
+    Requires admin role.
+    """
+    if not validate_object_id(customer_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid customer ID"
+        )
+
+    # Verify customer exists
+    customer = await db.users.find_one({"_id": ObjectId(customer_id), "role": "client"})
+
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Customer not found"
+        )
+
+    # Get customer orders
+    skip = (page - 1) * limit
+    cursor = db.orders.find({"user_id": customer_id}).sort("created_at", -1).skip(skip).limit(limit)
+    orders = await cursor.to_list(length=limit)
+
+    # Format orders
+    formatted_orders = []
+    for order in orders:
+        formatted_orders.append({
+            "id": str(order["_id"]),
+            "order_number": order["order_number"],
+            "total": order.get("total", 0.0),
+            "status": order.get("status", "pending"),
+            "payment_status": order.get("payment_status", "pending"),
+            "item_count": len(order.get("items", [])),
+            "created_at": order.get("created_at", datetime.utcnow()),
+        })
+
+    # Get total count
+    total_orders = await db.orders.count_documents({"user_id": customer_id})
+
+    return {
+        "success": True,
+        "data": {
+            "customer": {
+                "id": str(customer["_id"]),
+                "email": customer["email"],
+                "name": customer.get("name")
+            },
+            "orders": formatted_orders,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total_orders,
+                "pages": (total_orders + limit - 1) // limit
+            }
+        }
+    }

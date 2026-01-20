@@ -406,3 +406,106 @@ async def create_category(
         created_at=created_category.get("created_at", datetime.utcnow()),
         updated_at=created_category.get("updated_at", datetime.utcnow()),
     )
+
+
+@router.get("/categories/{category_id}", response_model=CategoryResponse)
+async def get_category(
+    category_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get a specific category by ID.
+    Public endpoint - no authentication required.
+    """
+    if not validate_object_id(category_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid category ID"
+        )
+
+    category = await db.categories.find_one({"_id": ObjectId(category_id)})
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+
+    # Only return active categories for public
+    if not category.get("active", True):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+
+    return CategoryResponse(
+        id=str(category["_id"]),
+        name=category["name"],
+        slug=category["slug"],
+        description=category.get("description"),
+        image=category.get("image"),
+        parent_id=str(category["parent_id"]) if category.get("parent_id") else None,
+        active=category.get("active", True),
+        product_count=category.get("product_count", 0),
+        created_at=category.get("created_at", datetime.utcnow()),
+        updated_at=category.get("updated_at", datetime.utcnow()),
+    )
+
+
+@router.get("/products/stock")
+async def get_products_stock(
+    product_ids: str = Query(..., description="Comma-separated product IDs"),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get stock information for multiple products (batch).
+    Public endpoint - no authentication required.
+    """
+    # Parse comma-separated IDs
+    ids = [pid.strip() for pid in product_ids.split(",") if pid.strip()]
+
+    if not ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No product IDs provided"
+        )
+
+    if len(ids) > 50:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum 50 products per request"
+        )
+
+    # Validate all IDs
+    for pid in ids:
+        if not validate_object_id(pid):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid product ID: {pid}"
+            )
+
+    # Fetch products
+    object_ids = [ObjectId(pid) for pid in ids]
+    cursor = db.products.find(
+        {"_id": {"$in": object_ids}, "active": True},
+        {"_id": 1, "name": 1, "stock": 1, "reserved_stock": 1, "stock_status": 1}
+    )
+    products = await cursor.to_list(length=len(ids))
+
+    # Build response
+    stock_data = {}
+    for product in products:
+        available = max(0, product.get("stock", 0) - product.get("reserved_stock", 0))
+        stock_data[str(product["_id"])] = {
+            "productId": str(product["_id"]),
+            "name": product.get("name"),
+            "stock": product.get("stock", 0),
+            "reservedStock": product.get("reserved_stock", 0),
+            "availableStock": available,
+            "stockStatus": product.get("stock_status", "instock")
+        }
+
+    return {
+        "success": True,
+        "data": stock_data
+    }

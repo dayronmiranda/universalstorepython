@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from datetime import datetime
 import logging
 
 from app.config import settings
@@ -72,7 +73,7 @@ app.add_middleware(
 )
 
 
-# Health check endpoint
+# Health check endpoints
 @app.get("/health", tags=["Health"])
 async def health_check():
     """
@@ -84,6 +85,51 @@ async def health_check():
         "version": "1.0.0",
         "app": settings.app_name
     }
+
+
+@app.get("/liveness", tags=["Health"])
+async def liveness_probe():
+    """
+    Kubernetes liveness probe endpoint.
+    Returns 200 if the application is alive.
+    """
+    return {
+        "status": "alive",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+@app.get("/readiness", tags=["Health"])
+async def readiness_probe():
+    """
+    Kubernetes readiness probe endpoint.
+    Returns 200 if the application is ready to serve traffic.
+    Checks database connectivity.
+    """
+    try:
+        # Check database connection
+        from app.database import database
+        if database.db is not None:
+            # Perform a simple database operation
+            await database.db.command("ping")
+            return {
+                "status": "ready",
+                "database": "connected",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        else:
+            return {
+                "status": "not ready",
+                "database": "not connected",
+                "timestamp": datetime.utcnow().isoformat()
+            }, 503
+    except Exception as e:
+        logger.error(f"Readiness check failed: {str(e)}")
+        return {
+            "status": "not ready",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }, 503
 
 
 @app.get("/", tags=["Root"])

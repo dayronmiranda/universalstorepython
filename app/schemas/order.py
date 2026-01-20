@@ -167,3 +167,72 @@ class OrderResponse(BaseModel):
                 "updated_at": "2024-01-01T00:00:00"
             }
         }
+
+
+class CartKeepAliveResponse(BaseModel):
+    """Response schema for cart keep-alive"""
+    success: bool = True
+    data: dict
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "success": True,
+                "data": {
+                    "message": "Cart expiration extended",
+                    "expiresAt": "2024-01-01T12:30:00"
+                }
+            }
+        }
+
+
+class CartStatusResponse(BaseModel):
+    """Response schema for cart status"""
+    success: bool = True
+    data: "CartStatusData"
+
+
+class CartStatusData(BaseModel):
+    """Cart status data"""
+    cartId: str
+    status: str  # "active", "expiring_soon", "expired"
+    minutesRemaining: float
+    expiresAt: Optional[datetime] = None
+    itemCount: int
+    totalValue: float
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "cartId": "507f1f77bcf86cd799439011",
+                "status": "active",
+                "minutesRemaining": 25.5,
+                "expiresAt": "2024-01-01T12:25:30",
+                "itemCount": 3,
+                "totalValue": 149.97
+            }
+        }
+
+
+class OrderStatusUpdate(BaseModel):
+    """Schema for updating order status"""
+    status: OrderStatus
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "processing"
+            }
+        }
+
+
+class OrderNoteCreate(BaseModel):
+    """Schema for adding order note"""
+    note: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "note": "Customer requested express delivery"
+            }
+        }
