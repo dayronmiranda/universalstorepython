@@ -161,6 +161,80 @@ async def create_chat(
     )
 
 
+@router.get("/poll", response_model=dict)
+async def poll_updates(
+    since: datetime = Query(..., description="Get updates since this timestamp"),
+    current_user: dict = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Poll for chat updates since a specific timestamp.
+    """
+    query = {
+        "user_id": current_user["_id"],
+        "updated_at": {"$gt": since}
+    }
+
+    # Admin can see all updates
+    if current_user.get("role") in ["admin", "support"]:
+        query = {"updated_at": {"$gt": since}}
+
+    cursor = db.chats.find(query).limit(50)
+    updated_chats = await cursor.to_list(length=50)
+
+    return {
+        "success": True,
+        "data": {
+            "has_updates": len(updated_chats) > 0,
+            "count": len(updated_chats),
+            "chat_ids": [str(chat["_id"]) for chat in updated_chats]
+        }
+    }
+
+
+@router.get("/unread")
+async def get_unread_count(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Get unread message count for current user.
+    """
+    query = {"user_id": current_user["_id"]}
+
+    pipeline = [
+        {"$match": query},
+        {
+            "$group": {
+                "_id": None,
+                "total_unread": {"$sum": "$unread_count"},
+                "chats_with_unread": {
+                    "$sum": {"$cond": [{"$gt": ["$unread_count", 0]}, 1, 0]}
+                }
+            }
+        }
+    ]
+
+    result = await db.chats.aggregate(pipeline).to_list(length=1)
+
+    if result:
+        return {
+            "success": True,
+            "data": {
+                "total_unread": result[0]["total_unread"],
+                "chats_with_unread": result[0]["chats_with_unread"]
+            }
+        }
+    else:
+        return {
+            "success": True,
+            "data": {
+                "total_unread": 0,
+                "chats_with_unread": 0
+            }
+        }
+
+
 @router.get("/{chat_id}", response_model=ChatWithMessagesResponse)
 async def get_chat(
     chat_id: str,
@@ -552,80 +626,6 @@ async def rate_chat(
         "success": True,
         "message": "Thank you for your feedback!"
     }
-
-
-@router.get("/poll", response_model=dict)
-async def poll_updates(
-    since: datetime = Query(..., description="Get updates since this timestamp"),
-    current_user: dict = Depends(get_current_user),
-    db: AsyncIOMotorDatabase = Depends(get_database)
-):
-    """
-    Poll for chat updates since a specific timestamp.
-    """
-    query = {
-        "user_id": current_user["_id"],
-        "updated_at": {"$gt": since}
-    }
-
-    # Admin can see all updates
-    if current_user.get("role") in ["admin", "support"]:
-        query = {"updated_at": {"$gt": since}}
-
-    cursor = db.chats.find(query).limit(50)
-    updated_chats = await cursor.to_list(length=50)
-
-    return {
-        "success": True,
-        "data": {
-            "has_updates": len(updated_chats) > 0,
-            "count": len(updated_chats),
-            "chat_ids": [str(chat["_id"]) for chat in updated_chats]
-        }
-    }
-
-
-@router.get("/unread")
-async def get_unread_count(
-    current_user: dict = Depends(get_current_user),
-    db: AsyncIOMotorDatabase = Depends(get_database)
-):
-    """
-    Get unread message count for current user.
-    """
-    query = {"user_id": current_user["_id"]}
-
-    pipeline = [
-        {"$match": query},
-        {
-            "$group": {
-                "_id": None,
-                "total_unread": {"$sum": "$unread_count"},
-                "chats_with_unread": {
-                    "$sum": {"$cond": [{"$gt": ["$unread_count", 0]}, 1, 0]}
-                }
-            }
-        }
-    ]
-
-    result = await db.chats.aggregate(pipeline).to_list(length=1)
-
-    if result:
-        return {
-            "success": True,
-            "data": {
-                "total_unread": result[0]["total_unread"],
-                "chats_with_unread": result[0]["chats_with_unread"]
-            }
-        }
-    else:
-        return {
-            "success": True,
-            "data": {
-                "total_unread": 0,
-                "chats_with_unread": 0
-            }
-        }
 
 
 @router.delete("/{chat_id}")

@@ -375,18 +375,20 @@ async def get_database_status(
     Get database health status (Admin only).
     """
     try:
-        # Ping database
+        # Ping database to check connection
         await database.db.command("ping")
-        server_status = await database.db.command("serverStatus")
+
+        # Get basic info without requiring serverStatus permission
+        db_stats = await database.db.command("dbStats")
 
         return {
             "success": True,
             "data": {
                 "status": "healthy",
-                "host": server_status.get("host"),
-                "version": server_status.get("version"),
-                "uptime": server_status.get("uptime"),
-                "connections": server_status.get("connections")
+                "database": db_stats.get("db"),
+                "collections": db_stats.get("collections"),
+                "dataSize": db_stats.get("dataSize"),
+                "storageSize": db_stats.get("storageSize")
             }
         }
     except Exception as e:
