@@ -307,9 +307,9 @@ async def create_stripe_payment_intent(
     )
 
 
-@router.post("/verify", response_model=VerifyPaymentResponse)
+@router.get("/verify", response_model=VerifyPaymentResponse)
 async def verify_payment(
-    request: VerifyPaymentRequest,
+    session_id: str = Query(..., description="Stripe checkout session ID"),
     current_user: dict = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
@@ -318,7 +318,7 @@ async def verify_payment(
     Updates order status based on payment status.
     """
     try:
-        session = await retrieve_checkout_session(request.session_id)
+        session = await retrieve_checkout_session(session_id)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -113,7 +113,7 @@ async def get_return(
     )
 
 
-@router.post("/returns/{return_id}/approve")
+@router.patch("/returns/{return_id}/approve")
 async def approve_return(
     return_id: str,
     approve_data: ReturnApproveRequest,
@@ -171,7 +171,7 @@ async def approve_return(
     }
 
 
-@router.post("/returns/{return_id}/reject")
+@router.patch("/returns/{return_id}/reject")
 async def reject_return(
     return_id: str,
     reject_data: ReturnRejectRequest,

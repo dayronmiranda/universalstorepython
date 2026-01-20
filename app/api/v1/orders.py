@@ -652,6 +652,53 @@ async def get_order(
     )
 
 
+@router.delete("/orders/{order_id}")
+async def delete_order(
+    order_id: str,
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Delete an order (Admin only).
+    This will hard-delete the order from the database.
+    Only cancelled orders can be deleted.
+    """
+    if not validate_object_id(order_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid order ID"
+        )
+
+    order = await db.orders.find_one({"_id": ObjectId(order_id)})
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+
+    # Only allow deletion of cancelled orders
+    if order.get("status") != "cancelled":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only cancelled orders can be deleted"
+        )
+
+    # Delete order
+    result = await db.orders.delete_one({"_id": ObjectId(order_id)})
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete order"
+        )
+
+    return {
+        "success": True,
+        "message": "Order deleted successfully"
+    }
+
+
 @router.post("/orders/{order_id}/cancel", response_model=OrderResponse)
 async def cancel_order(
     order_id: str,
@@ -784,7 +831,7 @@ async def update_order_status(
     )
 
 
-@router.post("/orders/{order_id}/notes")
+@router.patch("/orders/{order_id}/notes")
 async def add_order_note(
     order_id: str,
     note_data: OrderNoteCreate,
@@ -951,7 +998,7 @@ async def get_pending_items(
 
 # Pickup Locations endpoints
 
-@router.get("/pickup-locations")
+@router.get("/orders/pickup-locations")
 async def list_pickup_locations(
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
@@ -978,7 +1025,7 @@ async def list_pickup_locations(
     }
 
 
-@router.post("/{order_id}/pickup/confirm")
+@router.post("/orders/{order_id}/pickup/confirm")
 async def confirm_pickup(
     order_id: str,
     location_id: str,
@@ -1061,7 +1108,7 @@ async def confirm_pickup(
     }
 
 
-@router.post("/pickup/verify")
+@router.post("/orders/pickup/verify")
 async def verify_pickup_code(
     pickup_code: str,
     current_user: dict = Depends(require_admin),
@@ -1113,7 +1160,7 @@ async def verify_pickup_code(
     }
 
 
-@router.get("/pickup/suggest-times")
+@router.get("/orders/pickup/suggest-times")
 async def suggest_pickup_times(
     location_id: str,
     preferred_date: Optional[datetime] = None,
@@ -1177,7 +1224,7 @@ async def suggest_pickup_times(
 
 # Stats & Analytics endpoint
 
-@router.get("/payment-stats")
+@router.get("/orders/payment-stats")
 async def get_payment_stats(
     days: int = Query(30, ge=1, le=365),
     current_user: dict = Depends(require_admin),

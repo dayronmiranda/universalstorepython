@@ -258,6 +258,39 @@ async def toggle_maintenance_mode(
     }
 
 
+@router.put("/store/config/maintenance")
+async def update_maintenance_config(
+    config_data: MaintenanceToggleRequest,
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Update full maintenance configuration (Admin only).
+    """
+    update_data = {
+        "enabled": config_data.enabled,
+        "message": config_data.message,
+        "updated_by": current_user["_id"],
+        "updated_at": datetime.utcnow()
+    }
+
+    # Upsert maintenance config
+    await db.maintenance_config.update_one(
+        {},
+        {"$set": update_data},
+        upsert=True
+    )
+
+    return {
+        "success": True,
+        "message": "Maintenance configuration updated",
+        "data": {
+            "enabled": config_data.enabled,
+            "message": config_data.message
+        }
+    }
+
+
 # Database Management endpoints
 
 @router.get("/database/current")

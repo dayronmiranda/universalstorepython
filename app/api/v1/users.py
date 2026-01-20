@@ -351,7 +351,70 @@ async def get_customer(
     )
 
 
-@router.put("/users/{user_id}/status")
+@router.put("/customers/{customer_id}", response_model=CustomerResponse)
+async def update_customer(
+    customer_id: str,
+    name: Optional[str] = None,
+    phone: Optional[str] = None,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(require_admin)
+):
+    """
+    Update customer information (Admin only).
+    Requires admin role.
+    """
+    if not validate_object_id(customer_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid customer ID"
+        )
+
+    customer = await db.users.find_one({"_id": ObjectId(customer_id), "role": "client"})
+
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Customer not found"
+        )
+
+    # Build update document
+    update_data = {"updated_at": datetime.utcnow()}
+    if name is not None:
+        update_data["name"] = name
+    if phone is not None:
+        update_data["phone"] = phone
+
+    # Update customer
+    result = await db.users.update_one(
+        {"_id": ObjectId(customer_id)},
+        {"$set": update_data}
+    )
+
+    if result.modified_count == 0 and (name is not None or phone is not None):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update customer"
+        )
+
+    # Get updated customer
+    updated_customer = await db.users.find_one({"_id": ObjectId(customer_id)})
+
+    return CustomerResponse(
+        id=str(updated_customer["_id"]),
+        email=updated_customer["email"],
+        name=updated_customer.get("name"),
+        phone=updated_customer.get("phone"),
+        role=updated_customer["role"],
+        active=updated_customer.get("active", True),
+        order_count=updated_customer.get("order_count", 0),
+        total_spent=updated_customer.get("total_spent", 0.0),
+        last_order_date=updated_customer.get("last_order_date"),
+        created_at=updated_customer.get("created_at", datetime.utcnow()),
+        updated_at=updated_customer.get("updated_at", datetime.utcnow()),
+    )
+
+
+@router.patch("/users/{user_id}/status")
 async def update_user_status(
     user_id: str,
     active: bool,
@@ -459,4 +522,46 @@ async def get_customer_orders(
                 "pages": (total_orders + limit - 1) // limit
             }
         }
+    }
+
+
+@router.delete("/customers/{customer_id}")
+async def delete_customer(
+    customer_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(require_admin)
+):
+    """
+    Delete a customer (Admin only).
+    This will soft-delete by setting active=false.
+    """
+    if not validate_object_id(customer_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid customer ID"
+        )
+
+    customer = await db.users.find_one({"_id": ObjectId(customer_id), "role": "client"})
+
+    if not customer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Customer not found"
+        )
+
+    # Soft delete by setting active to False
+    result = await db.users.update_one(
+        {"_id": ObjectId(customer_id)},
+        {"$set": {"active": False, "updated_at": datetime.utcnow()}}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete customer"
+        )
+
+    return {
+        "success": True,
+        "message": "Customer deleted successfully"
     }

@@ -380,7 +380,7 @@ async def send_message(
     return MessageResponse(**message)
 
 
-@router.put("/{chat_id}/status")
+@router.patch("/{chat_id}/status")
 async def update_chat_status(
     chat_id: str,
     status_update: ChatStatusUpdate,
@@ -423,7 +423,7 @@ async def update_chat_status(
     }
 
 
-@router.post("/{chat_id}/assign")
+@router.patch("/{chat_id}/assign")
 async def assign_chat(
     chat_id: str,
     assign_data: ChatAssignRequest,
@@ -606,3 +606,49 @@ async def get_unread_count(
                 "chats_with_unread": 0
             }
         }
+
+
+@router.delete("/{chat_id}")
+async def delete_chat(
+    chat_id: str,
+    current_user: dict = Depends(require_admin),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Delete a chat (Admin only).
+    Only closed chats can be deleted.
+    """
+    if not validate_object_id(chat_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid chat ID"
+        )
+
+    chat = await db.chats.find_one({"_id": ObjectId(chat_id)})
+
+    if not chat:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chat not found"
+        )
+
+    # Only allow deletion of closed chats
+    if chat.get("status") != "closed":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only closed chats can be deleted"
+        )
+
+    # Delete chat
+    result = await db.chats.delete_one({"_id": ObjectId(chat_id)})
+
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete chat"
+        )
+
+    return {
+        "success": True,
+        "message": "Chat deleted successfully"
+    }

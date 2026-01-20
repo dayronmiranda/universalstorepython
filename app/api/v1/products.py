@@ -408,6 +408,101 @@ async def create_category(
     )
 
 
+@router.put("/categories/{category_id}", response_model=CategoryResponse)
+async def update_category(
+    category_id: str,
+    category_data: CategoryCreate,
+    db: AsyncIOMotorDatabase = Depends(get_database),
+    current_user: dict = Depends(require_product_manager)
+):
+    """
+    Update a category.
+    Requires product_manager or admin role.
+    """
+    if not validate_object_id(category_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid category ID"
+        )
+
+    category = await db.categories.find_one({"_id": ObjectId(category_id)})
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+
+    # Check if new slug conflicts with another category
+    if category_data.slug != category.get("slug"):
+        existing = await db.categories.find_one({
+            "slug": category_data.slug,
+            "_id": {"$ne": ObjectId(category_id)}
+        })
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Category with this slug already exists"
+            )
+
+    # Validate parent_id if provided
+    if category_data.parent_id:
+        if not validate_object_id(category_data.parent_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid parent category ID"
+            )
+
+        # Prevent self-parenting
+        if category_data.parent_id == category_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Category cannot be its own parent"
+            )
+
+        parent = await db.categories.find_one({"_id": ObjectId(category_data.parent_id)})
+        if not parent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Parent category not found"
+            )
+
+    # Build update document
+    update_data = category_data.model_dump(exclude_unset=True)
+    update_data["updated_at"] = datetime.utcnow()
+
+    if category_data.parent_id:
+        update_data["parent_id"] = ObjectId(category_data.parent_id)
+
+    # Update category
+    result = await db.categories.update_one(
+        {"_id": ObjectId(category_id)},
+        {"$set": update_data}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update category"
+        )
+
+    # Fetch updated category
+    updated_category = await db.categories.find_one({"_id": ObjectId(category_id)})
+
+    return CategoryResponse(
+        id=str(updated_category["_id"]),
+        name=updated_category["name"],
+        slug=updated_category["slug"],
+        description=updated_category.get("description"),
+        image=updated_category.get("image"),
+        parent_id=str(updated_category["parent_id"]) if updated_category.get("parent_id") else None,
+        active=updated_category.get("active", True),
+        product_count=updated_category.get("product_count", 0),
+        created_at=updated_category.get("created_at", datetime.utcnow()),
+        updated_at=updated_category.get("updated_at", datetime.utcnow()),
+    )
+
+
 @router.get("/categories/{category_id}", response_model=CategoryResponse)
 async def get_category(
     category_id: str,
@@ -450,6 +545,56 @@ async def get_category(
         created_at=category.get("created_at", datetime.utcnow()),
         updated_at=category.get("updated_at", datetime.utcnow()),
     )
+
+
+@router.delete("/categories/{category_id}")
+async def delete_category(
+    category_id: str,
+    current_user: dict = Depends(require_product_manager),
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Delete a category (Product Manager or Admin only).
+    This will soft-delete by setting active=false.
+    """
+    if not validate_object_id(category_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid category ID"
+        )
+
+    category = await db.categories.find_one({"_id": ObjectId(category_id)})
+
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+
+    # Check if category has products
+    product_count = await db.products.count_documents({"category": category_id, "active": True})
+    if product_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete category with {product_count} active products"
+        )
+
+    # Soft delete by setting active to False
+    result = await db.categories.update_one(
+        {"_id": ObjectId(category_id)},
+        {"$set": {"active": False, "updated_at": datetime.utcnow()}}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete category"
+        )
+
+    return {
+        "success": True,
+        "message": "Category deleted successfully"
+    }
 
 
 @router.get("/products/stock")
