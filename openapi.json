@@ -2961,6 +2961,895 @@
         }
       }
     },
+    "/support/agent/profile": {
+      "get": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Get current agent profile",
+        "description": "Returns the support agent profile for the authenticated user. Requires support or admin role.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Agent profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupportAgent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/status": {
+      "put": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Update agent status",
+        "description": "Updates the agent's availability status (online, offline, away, busy).",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "online",
+                      "offline",
+                      "away",
+                      "busy"
+                    ],
+                    "description": "Agent availability status"
+                  },
+                  "statusMessage": {
+                    "type": "string",
+                    "description": "Optional status message"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/dashboard": {
+      "get": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Get agent dashboard stats",
+        "description": "Returns dashboard statistics for the current agent including today's metrics, current load, and performance data.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "today": {
+                          "type": "object",
+                          "properties": {
+                            "chatsHandled": {
+                              "type": "integer"
+                            },
+                            "messagessSent": {
+                              "type": "integer"
+                            },
+                            "avgResponseTime": {
+                              "type": "number",
+                              "description": "Average response time in seconds"
+                            },
+                            "customerSatisfaction": {
+                              "type": "number",
+                              "description": "Satisfaction score 0-1"
+                            }
+                          }
+                        },
+                        "currentLoad": {
+                          "type": "object",
+                          "properties": {
+                            "activeChats": {
+                              "type": "integer"
+                            },
+                            "maxChats": {
+                              "type": "integer"
+                            },
+                            "utilizationPercent": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/support/agent/chats": {
+      "get": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Get chats assigned to current agent",
+        "description": "Returns all chats currently assigned to the authenticated agent. By default returns chats with status: assigned, in_progress, or pending_user.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "assigned",
+                "in_progress",
+                "pending_user",
+                "resolved"
+              ]
+            },
+            "description": "Filter by specific status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of agent's chats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "chats": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/SupportChat"
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/support/agent/queue": {
+      "get": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Get unassigned chats in queue",
+        "description": "Returns all chats waiting for assignment, ordered by priority and creation time.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "priority",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by priority (comma-separated: urgent,high,normal,low)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Maximum number of chats to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue of unassigned chats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "chats": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/SupportChat"
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/support/agent/queue/stats": {
+      "get": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Get queue statistics",
+        "description": "Returns statistics about the current queue including total count, average wait time, and breakdown by priority.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Queue statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer",
+                          "description": "Total chats in queue"
+                        },
+                        "avgWaitTime": {
+                          "type": "number",
+                          "description": "Average wait time in seconds"
+                        },
+                        "byPriority": {
+                          "type": "object",
+                          "properties": {
+                            "urgent": {
+                              "type": "integer"
+                            },
+                            "high": {
+                              "type": "integer"
+                            },
+                            "normal": {
+                              "type": "integer"
+                            },
+                            "low": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/support/agent/claim/{chatId}": {
+      "post": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Claim a chat from queue",
+        "description": "Self-assigns a waiting chat to the current agent.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat ID to claim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat claimed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupportChat"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/transfer/{chatId}": {
+      "post": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Transfer chat to another agent",
+        "description": "Transfers an assigned chat to another available agent.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat ID to transfer"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "toAgentId"
+                ],
+                "properties": {
+                  "toAgentId": {
+                    "type": "string",
+                    "description": "Target agent's user ID"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "Reason for transfer"
+                  },
+                  "note": {
+                    "type": "string",
+                    "description": "Internal note for receiving agent"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat transferred successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupportChat"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/release/{chatId}": {
+      "post": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Release chat back to queue",
+        "description": "Unassigns the chat from the current agent and returns it to the waiting queue.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat ID to release"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "description": "Reason for releasing the chat"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat released to queue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupportChat"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/escalate/{chatId}": {
+      "post": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Escalate chat priority",
+        "description": "Escalates a chat to urgent priority and optionally assigns to a specific agent.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat ID to escalate"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "description": "Reason for escalation"
+                  },
+                  "targetAgentId": {
+                    "type": "string",
+                    "description": "Optional: specific agent to escalate to"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat escalated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupportChat"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/resolve/{chatId}": {
+      "post": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Mark chat as resolved",
+        "description": "Marks the chat as resolved and records resolution metrics.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat ID to resolve"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "description": "Resolution summary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat marked as resolved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupportChat"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/priority/{chatId}": {
+      "put": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Set chat priority",
+        "description": "Changes the priority level of a chat.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Chat ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "priority"
+                ],
+                "properties": {
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "normal",
+                      "high",
+                      "urgent"
+                    ],
+                    "description": "New priority level"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "Reason for priority change"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Priority updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SupportChat"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/support/agent/online": {
+      "get": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Get online agents",
+        "description": "Returns count and list of currently online support agents.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Online agents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer",
+                          "description": "Number of online agents"
+                        },
+                        "agents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "userId": {
+                                "type": "string"
+                              },
+                              "displayName": {
+                                "type": "string"
+                              },
+                              "currentChatCount": {
+                                "type": "integer"
+                              },
+                              "maxConcurrentChats": {
+                                "type": "integer"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/support/poll": {
       "get": {
         "tags": [
@@ -5179,6 +6068,157 @@
           "internalNotes": {
             "type": "string",
             "description": "Internal notes (only visible to admin/support)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SupportAgent": {
+        "type": "object",
+        "description": "Support agent profile",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Agent profile ID"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Associated user ID"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Agent display name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "online",
+              "offline",
+              "away",
+              "busy"
+            ],
+            "description": "Agent availability status"
+          },
+          "statusMessage": {
+            "type": "string",
+            "description": "Custom status message"
+          },
+          "statusChangedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When status was last changed"
+          },
+          "maxConcurrentChats": {
+            "type": "integer",
+            "default": 5,
+            "description": "Maximum number of concurrent chats"
+          },
+          "currentActiveChats": {
+            "type": "integer",
+            "description": "Current number of active chats"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "general",
+                "technical",
+                "billing",
+                "shipping",
+                "returns",
+                "orders",
+                "products"
+              ]
+            },
+            "description": "Agent skill areas"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Agent priority for assignment (lower = higher priority)"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Agent timezone",
+            "example": "America/New_York"
+          },
+          "workingHours": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "day": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 6,
+                  "description": "Day of week (0=Sunday, 6=Saturday)"
+                },
+                "startTime": {
+                  "type": "string",
+                  "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+                  "example": "09:00"
+                },
+                "endTime": {
+                  "type": "string",
+                  "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+                  "example": "18:00"
+                },
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "Working hours schedule"
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "totalChatsHandled": {
+                "type": "integer"
+              },
+              "totalChatsRated": {
+                "type": "integer"
+              },
+              "averageRating": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 5
+              },
+              "averageFirstResponseTime": {
+                "type": "number",
+                "description": "Average first response time in seconds"
+              },
+              "averageResolutionTime": {
+                "type": "number",
+                "description": "Average resolution time in seconds"
+              },
+              "chatsResolvedToday": {
+                "type": "integer"
+              }
+            },
+            "description": "Agent performance statistics"
+          },
+          "lastActivityAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last activity timestamp"
+          },
+          "lastChatAssignedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last chat assignment timestamp"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether agent profile is active"
           },
           "createdAt": {
             "type": "string",
