@@ -40,6 +40,10 @@
       "description": "Orders, cart, payments and returns"
     },
     {
+      "name": "Payments",
+      "description": "Payment processing, checkout, refunds and transactions"
+    },
+    {
       "name": "Support",
       "description": "Support system, chat and communications"
     },
@@ -112,7 +116,7 @@
           "Auth"
         ],
         "summary": "Verify magic link",
-        "description": "Verifies the magic link token and returns JWT + httpOnly cookie.\n\nThe JWT contains the user role, allowing frontend to redirect:\n- Admin roles (admin, support, product_manager) → Admin dashboard\n- Client role → Storefront",
+        "description": "Verifies the magic link token and returns JWT + httpOnly cookie.\n\nThe JWT contains the user role, allowing frontend to redirect:\n- Admin roles (admin, support, product_manager) \u2192 Admin dashboard\n- Client role \u2192 Storefront",
         "security": [],
         "requestBody": {
           "required": true,
@@ -1165,7 +1169,7 @@
                       "type": "boolean"
                     },
                     "data": {
-                      "type": "object"
+                      "$ref": "#/components/schemas/StockTracking"
                     }
                   }
                 }
@@ -1794,7 +1798,7 @@
         },
         "responses": {
           "200": {
-            "description": "Nota agregada",
+            "description": "Note added",
             "content": {
               "application/json": {
                 "schema": {
@@ -1879,7 +1883,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "Return ID (ObjectId)",
+            "description": "Return ID",
             "schema": {
               "type": "string"
             }
@@ -1915,7 +1919,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "Return ID (ObjectId)",
+            "description": "Return ID",
             "schema": {
               "type": "string"
             }
@@ -1969,7 +1973,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "Return ID (ObjectId)",
+            "description": "Return ID",
             "schema": {
               "type": "string"
             }
@@ -2057,7 +2061,7 @@
         },
         "responses": {
           "200": {
-            "description": "Horarios sugeridos",
+            "description": "Suggested times",
             "content": {
               "application/json": {
                 "schema": {
@@ -2345,40 +2349,10 @@
         }
       }
     },
-    "/carts/{id}/heartbeat": {
-      "post": {
-        "tags": [
-          "Orders"
-        ],
-        "summary": "Keep cart alive (heartbeat)",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/IDParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Heartbeat registrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/payments/checkout": {
       "post": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "Create Stripe checkout session",
         "security": [
@@ -2429,7 +2403,7 @@
     "/payments/checkout/{id}": {
       "get": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "Get session details",
         "security": [
@@ -2467,7 +2441,7 @@
     "/payments/intent": {
       "post": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "Create payment intent",
         "security": [
@@ -2528,7 +2502,7 @@
     "/payments/refund": {
       "post": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "Process refund (Admin)",
         "security": [
@@ -2578,7 +2552,7 @@
     "/payments/customers": {
       "get": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "List Stripe customers (Admin)",
         "security": [
@@ -2622,7 +2596,7 @@
     "/payments/customers/{id}": {
       "get": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "Get Stripe customer",
         "security": [
@@ -2660,7 +2634,7 @@
     "/payments/transactions": {
       "get": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "List transactions (Admin)",
         "security": [
@@ -2704,7 +2678,7 @@
     "/payments/disputes": {
       "get": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "List disputes (Admin)",
         "security": [
@@ -2740,7 +2714,7 @@
     "/payments/webhook-events": {
       "get": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "List webhook events (Admin)",
         "security": [
@@ -2784,7 +2758,7 @@
     "/payments/verify": {
       "get": {
         "tags": [
-          "Orders"
+          "Payments"
         ],
         "summary": "Verify payment session",
         "security": [],
@@ -2844,7 +2818,9 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "enum": ["all"]
+              "enum": [
+                "all"
+              ]
             },
             "description": "Use 'all' to see all chats (requires admin/support role)"
           },
@@ -2853,7 +2829,15 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "enum": ["open", "assigned", "in_progress", "pending_user", "resolved", "closed", "all"]
+              "enum": [
+                "open",
+                "assigned",
+                "in_progress",
+                "pending_user",
+                "resolved",
+                "closed",
+                "all"
+              ]
             },
             "description": "Filter by chat status"
           }
@@ -4253,6 +4237,125 @@
           }
         }
       }
+    },
+    "/carts/{id}/keep-alive": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Keep cart alive",
+        "description": "Extends the cart expiration time by 30 minutes",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IDParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cart renewed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/carts/{id}/status": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Get cart expiration status",
+        "description": "Returns the cart's expiration status and time remaining",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IDParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cart status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "cartId": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "active",
+                            "expiring_soon",
+                            "expired"
+                          ]
+                        },
+                        "minutesRemaining": {
+                          "type": "number"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "itemCount": {
+                          "type": "integer"
+                        },
+                        "totalValue": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4330,7 +4433,7 @@
         }
       },
       "Forbidden": {
-        "description": "Sin permisos",
+        "description": "No permissions",
         "content": {
           "application/json": {
             "schema": {
@@ -4454,7 +4557,7 @@
                 }
               }
             },
-            "description": "Archivos adjuntos"
+            "description": "Attachments"
           },
           "eventType": {
             "type": "string",
@@ -5591,20 +5694,44 @@
       "StockTracking": {
         "type": "object",
         "properties": {
-          "productsWithLowStock": {
+          "summary": {
+            "type": "object",
+            "properties": {
+              "totalProducts": {
+                "type": "integer"
+              },
+              "totalStock": {
+                "type": "integer"
+              },
+              "freeStock": {
+                "type": "integer"
+              },
+              "reservedStock": {
+                "type": "integer"
+              },
+              "inOrdersStock": {
+                "type": "integer"
+              },
+              "activeReservations": {
+                "type": "integer"
+              },
+              "lastUpdated": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "products": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TrackedProduct"
             }
           },
-          "productsOutOfStock": {
+          "reservationDetails": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TrackedProduct"
+              "$ref": "#/components/schemas/ReservationDetail"
             }
-          },
-          "totalReserved": {
-            "type": "integer"
           }
         }
       },
@@ -5617,6 +5744,9 @@
           "name": {
             "type": "string"
           },
+          "sku": {
+            "type": "string"
+          },
           "stock": {
             "type": "integer"
           },
@@ -5625,63 +5755,181 @@
           },
           "availableStock": {
             "type": "integer"
+          },
+          "category": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "reservations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "cartId": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expiresIn": {
+                  "type": "integer",
+                  "description": "Milliseconds until expiration"
+                }
+              }
+            }
           }
         }
       },
       "ReservationDetail": {
         "type": "object",
         "properties": {
-          "_id": {
+          "cartId": {
             "type": "string"
           },
-          "productId": {
-            "type": "string"
+          "totalQuantity": {
+            "type": "integer"
           },
-          "quantity": {
+          "reservedProducts": {
             "type": "integer"
           },
           "expiresAt": {
             "type": "string",
             "format": "date-time"
           },
-          "status": {
-            "type": "string"
+          "expiresIn": {
+            "type": "integer",
+            "description": "Milliseconds until expiration"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "productName": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         }
       },
       "PaymentStats": {
         "type": "object",
         "properties": {
-          "totalRevenue": {
-            "type": "number"
+          "period": {
+            "type": "object",
+            "properties": {
+              "startDate": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "endDate": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
           },
-          "totalOrders": {
-            "type": "integer"
+          "overview": {
+            "type": "object",
+            "properties": {
+              "totalOrders": {
+                "type": "integer"
+              },
+              "totalRevenue": {
+                "type": "number"
+              },
+              "averageOrderValue": {
+                "type": "number"
+              },
+              "conversionRate": {
+                "type": "number"
+              }
+            }
           },
-          "averageOrderValue": {
-            "type": "number"
+          "paymentStatus": {
+            "type": "object",
+            "properties": {
+              "paid": {
+                "type": "integer"
+              },
+              "pending": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              },
+              "refunded": {
+                "type": "integer"
+              },
+              "refundedAmount": {
+                "type": "number"
+              }
+            }
           },
-          "pendingPayments": {
-            "type": "integer"
+          "orderStatus": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "totalAmount": {
+                  "type": "number"
+                }
+              }
+            }
           },
-          "completedPayments": {
-            "type": "integer"
+          "dailyRevenue": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "revenue": {
+                  "type": "number"
+                },
+                "orders": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         }
       },
       "PendingItems": {
         "type": "object",
-        "properties": {
-          "pendingOrders": {
-            "type": "integer"
-          },
-          "pendingReturns": {
-            "type": "integer"
-          },
-          "pendingSupport": {
-            "type": "integer"
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "quantity": {
+              "type": "integer",
+              "description": "Total quantity pending"
+            },
+            "orders": {
+              "type": "integer",
+              "description": "Number of orders containing this product"
+            }
           }
-        }
+        },
+        "description": "Map of productId to pending quantity and order count"
       },
       "ConnectionStatus": {
         "type": "object",
@@ -5901,7 +6149,7 @@
           },
           "showCountdown": {
             "type": "boolean",
-            "description": "Si mostrar cuenta regresiva"
+            "description": "Whether to show countdown"
           },
           "customPageUrl": {
             "type": "string",
